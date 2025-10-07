@@ -32,6 +32,24 @@ function getUserByToken(token?: string | null): User | null {
   if (!token) return null; const tokens = getTokens(); const userId = tokens[token]; if (!userId) return null; const users = getUsers(); const u = users.find((x) => x.id === userId); if (!u) return null; const { password: _pw, ...user } = u; return user;
 }
 
+function activePlayerIdFor(session: Session, st: GameState): string | undefined {
+  return st.activePlayerId ?? session.activePlayerId ?? session.turnOrder[0];
+}
+
+function ensureUser(token?: string | null): User {
+  const me = getUserByToken(token);
+  if (!me) throw new Error("Требуется вход в систему");
+  return me;
+}
+
+function ensureActiveTurn(session: Session, st: GameState, token?: string | null): User {
+  const me = ensureUser(token);
+  const activeId = activePlayerIdFor(session, st);
+  if (!activeId) throw new Error("Нет активного игрока");
+  if (me.id !== activeId) throw new Error("Сейчас ход противника");
+  return me;
+}
+
 function emptyGrid(n: number): RugCell[][] { return Array.from({ length: n }, () => Array.from({ length: n }, () => ({ stack: [] })) ); }
 
 function ensureGameState(session: Session): GameState {
@@ -178,7 +196,7 @@ export const API = {
   // Sessions
   async listSessions(_token?: string): Promise<Session[]> { return getSessions().slice().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)); },
   async createSession(payload: CreateSessionPayload, token?: string): Promise<Session> {
-    const me = getUserByToken(token); if (!me) throw new Error("Требуется вход в систему"); const sessions = getSessions(); const id = generateId(); const status: SessionStatus = "waiting";
+    const me = getUserByToken(token); if (!me) throw new Error("Требуется вход �� систему"); const sessions = getSessions(); const id = generateId(); const status: SessionStatus = "waiting";
     const session: Session = { id, name: payload.name || "Новая партия", players: [me], status, turnOrder: [me.id], activePlayerId: me.id, createdAt: nowIso() };
     sessions.unshift(session); setSessions(sessions); return session;
   },
@@ -229,7 +247,7 @@ export const API = {
   },
   async deleteSession(sessionId: string, token?: string) {
     const me = getUserByToken(token);
-    if (!me) throw new Error("Требуется вход в систему");
+    if (!me) throw new Error("Требуется ��ход в систему");
     const sessions = getSessions();
     const existing = sessions.find((session) => session.id === sessionId);
     if (!existing) throw new Error("Сессия не найдена");
@@ -246,8 +264,13 @@ export const API = {
   async getGameState(sessionId: string, _token?: string) { const s = requireSession(sessionId); const st = ensureGameState(s); return st; },
 
   // Actions
-  async rotate(sessionId: string, turn: "left" | "right", _token?: string) {
-    const session = requireSession(sessionId); const states = getStates(); const st = ensureGameState(session); const dir = rotate(st.direction || "N", turn); const updated: GameState = { ...st, direction: dir }; states[sessionId] = updated; setStates(states); return updated;
+  async rotate(sessionId: string, turn: "left" | "right", token?: string) {
+    const session = requireSession(sessionId); const states = getStates(); const st = ensureGameState(session);
+    if (st.status === "finished") throw new Error("Игра завершена");
+    ensureActiveTurn(session, st, token);
+    const dir = rotate(st.direction || "N", turn); const updated: GameState = { ...st, direction: dir };
+    states[sessionId] = updated; setStates(states);
+    return updated;
   },
   async step(sessionId: string, _token?: string) {
     const session = requireSession(sessionId); const states = getStates(); let st = ensureGameState(session); const nxt = stepForward(st); st = { ...st, pieces: [{ id: "assam", x: nxt.x, y: nxt.y }], direction: nxt.dir };
@@ -255,17 +278,26 @@ export const API = {
     st = applyPayment(st, st.activePlayerId || session.activePlayerId || session.turnOrder[0], nxt.x, nxt.y);
     states[sessionId] = st; setStates(states); return st;
   },
-  async rollDice(sessionId: string, _token?: string) {
-    const session = requireSession(sessionId); const states = getStates(); let st = ensureGameState(session); const roll = 1 + Math.floor(Math.random() * 6); let res = st; for (let i = 0; i < roll; i++) { res = await this.step(sessionId, _token); st = res; }
+  async rollDice(sessionId: string, token?: string) {
+    const session = requireSession(sessionId); const states = getStates(); let st = ensureGameState(session);
+    if (st.status === "finished") throw new Error("Игра завершена");
+    ensureActiveTurn(session, st, token);
+    const diceFaces = [1, 2, 2, 3, 3, 4];
+    const roll = diceFaces[Math.floor(Math.random() * diceFaces.length)];
+    let res = st;
+    for (let i = 0; i < roll; i++) { res = await this.step(sessionId, token); st = res; }
     const updated: GameState = { ...st, lastRoll: roll };
     states[sessionId] = updated; setStates(states);
-    saveSession({ ...session, activePlayerId: updated.activePlayerId });
+    saveSession({ ...session, activePlayerId: activePlayerIdFor(session, updated) });
     return updated;
   },
   async placeRug(sessionId: string, body: { x: number; y: number; orientation: "H" | "V" }, token?: string) {
-    const me = getUserByToken(token); if (!me) throw new Error("Требуется вход в систему"); const session = requireSession(sessionId); const states = getStates(); const st0 = ensureGameState(session);
+    const session = requireSession(sessionId); const states = getStates(); const st0 = ensureGameState(session);
+    if (st0.status === "finished") throw new Error("Игра завершена");
+    const me = ensureActiveTurn(session, st0, token);
     const stPlaced = placeRug(st0, me.id, body.x, body.y, body.orientation);
-    const nextActive = nextPlayerId(session, stPlaced.activePlayerId);
+    const currentActive = activePlayerIdFor(session, stPlaced) ?? me.id;
+    const nextActive = nextPlayerId(session, currentActive);
     const st1: GameState = { ...stPlaced, activePlayerId: nextActive };
     states[sessionId] = st1; setStates(states);
     saveSession({ ...session, activePlayerId: nextActive });
