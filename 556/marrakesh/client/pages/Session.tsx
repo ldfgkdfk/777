@@ -225,9 +225,12 @@ export default function SessionPage() {
           <div className="rounded-2xl border bg-card p-4">
             <Board size={size} tokens={tokenViews} rugsTop={rugsTop as any} dir={state?.direction as any} onRotate={onRotate} onCellClick={onCellClick} backgroundUrl={"https://cdn.builder.io/api/v1/image/assets%2F9c98f74ce2d9433495c720297d8c0a5c%2Fdcd20b8d47da4d1883d4d20b82fcfab2?format=webp&width=800"} highlight={firstCell ? [{ x: firstCell.x, y: firstCell.y }] : undefined} tokenImageUrl="/algerian-avatar.svg" />
           </div>
-          <div className="rounded-xl border bg-white p-3 shadow-sm space-y-2">
-            <div className="text-sm font-semibold">Кубик: {state?.lastRoll ?? "—"}</div>
-            <Button onClick={onRoll} className="w-full">Бросить</Button>
+          <div className="rounded-xl border bg-white p-3 shadow-sm space-y-3">
+            <div className="flex items-center justify-between text-sm font-semibold">
+              <span>Кубик: {state?.lastRoll ?? "—"}</span>
+              <span className={gameFinished ? "text-muted-foreground" : isMyTurn ? "text-emerald-600" : "text-muted-foreground"}>{turnMessage}</span>
+            </div>
+            <Button onClick={onRoll} className="w-full" disabled={!canInteract || placingPhase !== 0}>Бросить</Button>
             <div className="text-xs text-muted-foreground">
               {placingPhase === 0 && "Сначала выберите направление и бросьте кубик"}
               {placingPhase === 1 && "Выберите первую клетку рядом с Ассамом"}
@@ -244,7 +247,7 @@ export default function SessionPage() {
         </div>
 
         <div className="rounded-xl border p-0 overflow-hidden">
-          <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">Игроки</div>
+          <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">И��роки</div>
           <ul className="divide-y">
             {players.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
