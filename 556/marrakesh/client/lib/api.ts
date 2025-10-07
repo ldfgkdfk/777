@@ -46,11 +46,15 @@ function ensureActiveTurn(session: Session, st: GameState, token?: string | null
   const me = ensureUser(token);
   const activeId = activePlayerIdFor(session, st);
   if (!activeId) throw new Error("Нет активного игрока");
-  if (me.id !== activeId) throw new Error("Сейчас ход противника");
+  if (me.id !== activeId) throw new Error("С��йчас ход противника");
   return me;
 }
 
 function emptyGrid(n: number): RugCell[][] { return Array.from({ length: n }, () => Array.from({ length: n }, () => ({ stack: [] })) ); }
+
+function topLayer(stack?: RugLayer[]): RugLayer | undefined {
+  return stack && stack.length ? stack[stack.length - 1] : undefined;
+}
 
 function ensureGameState(session: Session): GameState {
   const all = getStates(); const cur = all[session.id];
@@ -196,7 +200,7 @@ export const API = {
   // Sessions
   async listSessions(_token?: string): Promise<Session[]> { return getSessions().slice().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)); },
   async createSession(payload: CreateSessionPayload, token?: string): Promise<Session> {
-    const me = getUserByToken(token); if (!me) throw new Error("Требуется вход �� систему"); const sessions = getSessions(); const id = generateId(); const status: SessionStatus = "waiting";
+    const me = getUserByToken(token); if (!me) throw new Error("Требуется вход в систему"); const sessions = getSessions(); const id = generateId(); const status: SessionStatus = "waiting";
     const session: Session = { id, name: payload.name || "Новая партия", players: [me], status, turnOrder: [me.id], activePlayerId: me.id, createdAt: nowIso() };
     sessions.unshift(session); setSessions(sessions); return session;
   },
@@ -247,7 +251,7 @@ export const API = {
   },
   async deleteSession(sessionId: string, token?: string) {
     const me = getUserByToken(token);
-    if (!me) throw new Error("Требуется ��ход в систему");
+    if (!me) throw new Error("Требуется вход в систему");
     const sessions = getSessions();
     const existing = sessions.find((session) => session.id === sessionId);
     if (!existing) throw new Error("Сессия не найдена");
