@@ -46,7 +46,7 @@ function ensureActiveTurn(session: Session, st: GameState, token?: string | null
   const me = ensureUser(token);
   const activeId = activePlayerIdFor(session, st);
   if (!activeId) throw new Error("Нет активного игрока");
-  if (me.id !== activeId) throw new Error("С��йчас ход противника");
+  if (me.id !== activeId) throw new Error("Сейчас ход противника");
   return me;
 }
 
@@ -158,8 +158,8 @@ function canPlaceRug(st: GameState, playerId: string, x: number, y: number, orie
   const cells: [number, number][] = orient === "H" ? [[x, y], [x + 1, y]] : [[x, y], [x, y + 1]];
   for (const [cx, cy] of cells) { if (cx < 0 || cy < 0 || cx >= n || cy >= n) return { ok: false, reason: "Вне поля" }; if (cx === assam.x && cy === assam.y) return { ok: false, reason: "Нельзя на клетку Ассама" }; }
   if (!cells.some(([cx, cy]) => (Math.abs(cx - assam.x) + Math.abs(cy - assam.y)) === 1)) return { ok: false, reason: "Должен соприкасаться с Ассамом" };
-  const top0 = grid[cells[0][1]][cells[0][0]].stack.at(-1);
-  const top1 = grid[cells[1][1]][cells[1][0]].stack.at(-1);
+  const top0 = topLayer(grid[cells[0][1]][cells[0][0]].stack);
+  const top1 = topLayer(grid[cells[1][1]][cells[1][0]].stack);
   if ((top0?.ownerId === playerId) || (top1?.ownerId === playerId)) return { ok: false, reason: "Нельзя накрывать свой ковёр" };
   if (top0 && top1 && top0.rugId === top1.rugId) return { ok: false, reason: "Нельзя полностью накрыть ковёр" };
   return { ok: true };
@@ -178,7 +178,7 @@ function placeRug(st: GameState, playerId: string, x: number, y: number, orient:
     // finish game: coins + visible tiles
     const balances = { ...(st.balances || {}) };
     const visibleCount: Record<string, number> = {};
-    for (let yy = 0; yy < grid.length; yy++) for (let xx = 0; xx < grid.length; xx++) { const top = grid[yy][xx].stack.at(-1); if (top) visibleCount[top.ownerId] = (visibleCount[top.ownerId] ?? 0) + 1; }
+    for (let yy = 0; yy < grid.length; yy++) for (let xx = 0; xx < grid.length; xx++) { const top = topLayer(grid[yy][xx].stack); if (top) visibleCount[top.ownerId] = (visibleCount[top.ownerId] ?? 0) + 1; }
     let winnerId = Object.keys(balances)[0]; let best = -Infinity;
     for (const pid of Object.keys(balances)) { const score = (balances[pid] ?? 0) + (visibleCount[pid] ?? 0); if (score > best) { best = score; winnerId = pid; } }
     return { ...st, rugsGrid: grid, rugsLeft, status: "finished", winnerId };
