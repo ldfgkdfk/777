@@ -147,13 +147,45 @@ export default function SessionPage() {
   }, [playerColors, state, size]);
 
   async function onRotate(turn: "left" | "right") {
-    try { const st = await API.rotate(id, turn, token ?? undefined); setState(st); } catch (e: any) { toast.error(e.message || "��шибка поворота"); }
+    if (gameFinished) return;
+    if (!user) {
+      toast.info(loginToPlayMessage);
+      return;
+    }
+    if (!canInteract) {
+      toast.info(opponentTurnMessage);
+      return;
+    }
+    if (placingPhase !== 0) return;
+    try { const st = await API.rotate(id, turn, token ?? undefined); setState(st); } catch (e: any) { toast.error(e.message || "Ошибка поворота"); }
   }
   async function onRoll() {
+    if (gameFinished) return;
+    if (!user) {
+      toast.info(loginToPlayMessage);
+      return;
+    }
+    if (!canInteract) {
+      toast.info(opponentTurnMessage);
+      return;
+    }
+    if (placingPhase !== 0) {
+      toast.info(placementPendingMessage);
+      return;
+    }
     try { const st = await API.rollDice(id, token ?? undefined); setState(st); setPlacingPhase(1); setFirstCell(null); } catch (e: any) { toast.error(e.message || "Ошибка броска"); }
   }
 
   async function onCellClick(x: number, y: number) {
+    if (!user) {
+      toast.info(loginToPlayMessage);
+      return;
+    }
+    if (!canInteract) {
+      toast.info(opponentTurnMessage);
+      return;
+    }
+    if (!state?.pieces?.[0] || gameFinished) return;
     if (!state?.pieces?.[0]) return;
     const a = state.pieces[0];
     if (placingPhase === 0) return;
@@ -197,7 +229,7 @@ export default function SessionPage() {
             <div className="text-sm font-semibold">Кубик: {state?.lastRoll ?? "—"}</div>
             <Button onClick={onRoll} className="w-full">Бросить</Button>
             <div className="text-xs text-muted-foreground">
-              {placingPhase === 0 && "��начала выберите направление и бросьте кубик"}
+              {placingPhase === 0 && "Сначала выберите направление и бросьте кубик"}
               {placingPhase === 1 && "Выберите первую клетку рядом с Ассамом"}
               {placingPhase === 2 && "Выберите вторую клетку, соседнюю с первой (не клетка Ассама)"}
             </div>
