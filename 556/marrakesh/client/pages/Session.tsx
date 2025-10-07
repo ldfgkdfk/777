@@ -53,6 +53,7 @@ export default function SessionPage() {
   const gameFinished = state?.status === "finished";
   const opponentTurnMessage = "Сейчас ход противника";
   const placementPendingMessage = "Сначала завершите размещение ковра";
+  const loginToPlayMessage = "Войдите, чтобы играть";
   const activePlayerName = players.find((p) => p.id === activePlayerId)?.name;
   const turnMessage = gameFinished
     ? "Игра завершена"
@@ -62,7 +63,7 @@ export default function SessionPage() {
         : opponentTurnMessage
       : activePlayerName
         ? `Ходит ${activePlayerName}`
-        : "Ожидание игроков";
+        : loginToPlayMessage;
   const canInteract = isMyTurn && !gameFinished;
 
   function playerStatusText(playerId: string) {
@@ -196,7 +197,7 @@ export default function SessionPage() {
             <div className="text-sm font-semibold">Кубик: {state?.lastRoll ?? "—"}</div>
             <Button onClick={onRoll} className="w-full">Бросить</Button>
             <div className="text-xs text-muted-foreground">
-              {placingPhase === 0 && "Сначала выберите направление и бросьте кубик"}
+              {placingPhase === 0 && "��начала выберите направление и бросьте кубик"}
               {placingPhase === 1 && "Выберите первую клетку рядом с Ассамом"}
               {placingPhase === 2 && "Выберите вторую клетку, соседнюю с первой (не клетка Ассама)"}
             </div>
