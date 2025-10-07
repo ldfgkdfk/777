@@ -186,7 +186,6 @@ export default function SessionPage() {
       return;
     }
     if (!state?.pieces?.[0] || gameFinished) return;
-    if (!state?.pieces?.[0]) return;
     const a = state.pieces[0];
     if (placingPhase === 0) return;
     if (placingPhase === 1) {
