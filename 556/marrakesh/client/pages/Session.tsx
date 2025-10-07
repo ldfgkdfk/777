@@ -47,6 +47,39 @@ export default function SessionPage() {
     return () => stopPoll();
   }, [id, token]);
 
+  const players = session?.players ?? [];
+  const activePlayerId = state?.activePlayerId;
+  const isMyTurn = Boolean(user && activePlayerId === user.id);
+  const gameFinished = state?.status === "finished";
+  const opponentTurnMessage = "Сейчас ход противника";
+  const placementPendingMessage = "Сначала завершите размещение ковра";
+  const activePlayerName = players.find((p) => p.id === activePlayerId)?.name;
+  const turnMessage = gameFinished
+    ? "Игра завершена"
+    : user
+      ? isMyTurn
+        ? "Ваш ход"
+        : opponentTurnMessage
+      : activePlayerName
+        ? `Ходит ${activePlayerName}`
+        : "Ожидание игроков";
+  const canInteract = isMyTurn && !gameFinished;
+
+  function playerStatusText(playerId: string) {
+    const isActive = playerId === activePlayerId;
+    if (user && playerId === user.id) {
+      return isActive ? "Ваш ход" : opponentTurnMessage;
+    }
+    return isActive ? "Сейчас ходит" : "Ожидает";
+  }
+
+  useEffect(() => {
+    if (!isMyTurn || gameFinished) {
+      setPlacingPhase(0);
+      setFirstCell(null);
+    }
+  }, [isMyTurn, gameFinished]);
+
   const tokenViews: Token[] = useMemo(() => {
     const p = state?.pieces?.[0];
     if (!p) return [];
