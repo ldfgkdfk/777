@@ -88,9 +88,21 @@ export default function SessionPage() {
 
   const size = state?.boardSize || 7;
 
-  function colorFor(id: string) {
+  function baseColorFor(id: string) {
     let hash = 0; for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
     const hue = hash % 360; return `hsl(${hue} 70% 60%)`;
+  }
+
+  const playerColors = useMemo(() => {
+    const colorMap: Record<string, string> = {};
+    players.forEach((player, index) => {
+      colorMap[player.id] = index === 1 ? "#dc2626" : baseColorFor(player.id);
+    });
+    return colorMap;
+  }, [players]);
+
+  function colorFor(id: string) {
+    return playerColors[id] ?? baseColorFor(id);
   }
 
   const rugsTop = useMemo(() => {
