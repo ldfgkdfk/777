@@ -247,13 +247,16 @@ export default function SessionPage() {
         </div>
 
         <div className="rounded-xl border p-0 overflow-hidden">
-          <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">И��роки</div>
+          <div className="border-b bg-muted/50 px-4 py-2 text-sm font-medium">Игроки</div>
           <ul className="divide-y">
             {players.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="flex size-6 items-center justify-center rounded-full" style={{ backgroundColor: colorFor(p.id) }}>{p.name?.[0]?.toUpperCase() || "?"}</span>
-                  <span className={p.id === state?.activePlayerId ? "font-semibold text-foreground" : "text-foreground"}>{p.name}</span>
+                  <div className="flex flex-col leading-tight">
+                    <span className={p.id === activePlayerId ? "font-semibold text-foreground" : "text-foreground"}>{p.name}</span>
+                    <span className={p.id === activePlayerId ? "text-xs font-medium text-emerald-600" : p.id === user?.id ? "text-xs font-medium text-amber-600" : "text-xs text-muted-foreground"}>{playerStatusText(p.id)}</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span title="Монеты" className="min-w-10 text-right">💰 {state?.balances?.[p.id] ?? 30}</span>
