@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="Avatar — Vector image by VectorStock / HappyDwiS">
+  <defs>
+    <clipPath id="r">
+      <circle cx="32" cy="32" r="30"/>
+    </clipPath>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#0ea5a4"/>
+  <g clip-path="url(#r)">
+    <circle cx="32" cy="26" r="12" fill="#fed7aa"/>
+    <rect x="10" y="38" width="44" height="20" rx="10" fill="#0f766e"/>
+    <circle cx="26" cy="24" r="2" fill="#1f2937"/>
+    <circle cx="38" cy="24" r="2" fill="#1f2937"/>
+    <path d="M26 30c3 3 9 3 12 0" stroke="#1f2937" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M18 18c4-4 24-4 28 0" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <title>Avatar — Vector image by VectorStock / HappyDwiS</title>
+</svg>
+
