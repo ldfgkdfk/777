@@ -143,7 +143,7 @@ export default function SessionPage() {
         };
       }),
     );
-  }, [state, size]);
+  }, [playerColors, state, size]);
 
   async function onRotate(turn: "left" | "right") {
     try { const st = await API.rotate(id, turn, token ?? undefined); setState(st); } catch (e: any) { toast.error(e.message || "��шибка поворота"); }
