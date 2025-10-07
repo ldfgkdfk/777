@@ -52,7 +52,7 @@ export default function SessionPage() {
   const isMyTurn = Boolean(user && activePlayerId === user.id);
   const gameFinished = state?.status === "finished";
   const opponentTurnMessage = "Сейчас ход противника";
-  const placementPendingMessage = "Сначала завершите размещение ковра";
+  const placementPendingMessage = "Сначала завершите размещен��е ковра";
   const loginToPlayMessage = "Войдите, чтобы играть";
   const activePlayerName = players.find((p) => p.id === activePlayerId)?.name;
   const turnMessage = gameFinished
@@ -104,6 +104,10 @@ export default function SessionPage() {
 
   function colorFor(id: string) {
     return playerColors[id] ?? baseColorFor(id);
+  }
+
+  function topStack<T>(stack?: T[]): T | undefined {
+    return stack && stack.length ? stack[stack.length - 1] : undefined;
   }
 
   const rugsTop = useMemo(() => {
