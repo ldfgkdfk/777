@@ -52,7 +52,7 @@ export default function SessionPage() {
   const isMyTurn = Boolean(user && activePlayerId === user.id);
   const gameFinished = state?.status === "finished";
   const opponentTurnMessage = "Сейчас ход противника";
-  const placementPendingMessage = "Сначала завершите размещен��е ковра";
+  const placementPendingMessage = "Сначала завершите размещение ковра";
   const loginToPlayMessage = "Войдите, чтобы играть";
   const activePlayerName = players.find((p) => p.id === activePlayerId)?.name;
   const turnMessage = gameFinished
@@ -114,13 +114,13 @@ export default function SessionPage() {
     const n = size; const grid = state?.rugsGrid; if (!grid) return [] as any;
     return grid.map((row, y) =>
       row.map((cell, x) => {
-        const top = cell.stack.at(-1);
+        const top = topStack(cell.stack);
         if (!top) return undefined;
         const { ownerId, rugId } = top;
-        const right = grid[y]?.[x + 1]?.stack.at(-1);
-        const left = grid[y]?.[x - 1]?.stack.at(-1);
-        const down = grid[y + 1]?.[x]?.stack.at(-1);
-        const up = grid[y - 1]?.[x]?.stack.at(-1);
+        const right = topStack(grid[y]?.[x + 1]?.stack);
+        const left = topStack(grid[y]?.[x - 1]?.stack);
+        const down = topStack(grid[y + 1]?.[x]?.stack);
+        const up = topStack(grid[y - 1]?.[x]?.stack);
 
         let orientation: "H" | "V" | undefined;
         let segment: "start" | "end" | undefined;
